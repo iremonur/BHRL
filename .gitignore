@@ -122,3 +122,5 @@ work_dirs/
 checkpoints/
 resnet_model/
 
+# Data Files
+data/
