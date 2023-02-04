@@ -15,7 +15,7 @@ def coco_eval(result_files,
               img_ids=None,
               img_labels=None,
               max_dets=(100, 300, 1000),
-              classwise=False):
+              classwise=True):
     for res_type in result_types:
         assert res_type in [
             'proposal', 'proposal_fast', 'bbox', 'segm', 'keypoints'
@@ -41,10 +41,14 @@ def coco_eval(result_files,
         assert result_file.endswith('.json')
 
         coco_dets = coco.loadRes(result_file)
+        print("\n coco dets === ", coco_dets)
         iou_type = 'bbox' if res_type == 'proposal' else res_type
+        print("\n coco  === ", coco)
+        print("\n iou type === ", iou_type)
         cocoEval = COCOeval(coco, coco_dets, iou_type)
         # only calculate ap in test split
         cates_all = coco.getCatIds()
+        print("\n cates_all === ", cates_all)
         img_ids_ = np.unique(np.array(img_ids)).tolist()
         img_labels_ = np.unique(np.array(img_labels)).tolist()
         img_cates_ = [cates_all[img_label_] for img_label_ in img_labels_]

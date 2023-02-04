@@ -28,10 +28,10 @@ def single_gpu_test(model,
 
         batch_size = len(result)
         if show or out_dir:
-            if batch_size == 1 and isinstance(data['img'][0], torch.Tensor):
-                img_tensor = data['img'][0]
+            if batch_size == 1 and isinstance(data['img'][0][0], torch.Tensor):
+                img_tensor = data['img'][0][0]
             else:
-                img_tensor = data['img'][0].data[0]
+                img_tensor = data['img'][0][0].data[0]
             img_metas = data['img_metas'][0].data[0]
             imgs = tensor2imgs(img_tensor, **img_metas[0]['img_norm_cfg'])
             assert len(imgs) == len(img_metas)
@@ -54,6 +54,7 @@ def single_gpu_test(model,
                     show=show,
                     out_file=out_file,
                     score_thr=show_score_thr)
+
 
         # encode mask results
         if isinstance(result[0], tuple):

@@ -5,6 +5,8 @@ import shutil
 import tempfile
 import time
 import warnings
+import cv2
+from numpy import random
 
 import mmcv
 import torch
@@ -19,6 +21,8 @@ from mmdet.core import coco_eval, results2json
 from mmdet.datasets import (build_dataloader, build_dataset,
                             replace_ImageToTensor)
 from mmdet.models import build_detector
+from mmdet.apis import inference_detector, init_detector, show_result_pyplot
+from mmdet.apis import single_gpu_test
 import numpy as np
 
 def multi_gpu_test(model, data_loader, tmpdir=None):
@@ -30,14 +34,33 @@ def multi_gpu_test(model, data_loader, tmpdir=None):
     rank, world_size = get_dist_info()
     if rank == 0:
         prog_bar = mmcv.ProgressBar(len(dataset))
+
     for i, data in enumerate(data_loader):
         with torch.no_grad():
             result = model(return_loss=False, rescale=True, **data)
         results.extend(result)
+
+        print("\n pred_size : {} \n". format(len(result[0][0])))
+        print("\n pred      : {} \n". format(result[0][0][0]))
+        print("\n imgmeta   : {} \n". format(data['img_metas']))
+        #img = cv2.imread(os.path.join("/home/ionur2/Desktop/MSc_THESIS/BHRL/data/VOCdevkit", data['img_metas'][0].data[0][0]['img_info']['filename']))
+        img = os.path.join("/home/ionur2/Desktop/MSc_THESIS/BHRL/data/VOCdevkit", data['img_metas'][0].data[0][0]['img_info']['filename'])
+        #for pred in result[0][0]:
+            #print(pred)
+            #color = (random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))
+            #show_result_pyplot(model, img, result[0])
+            #img = cv2.rectangle(img, (int(pred[0]), int(pred[1])), (int(pred[2]), int(pred[3])), color, 2)
+        #cv2.imshow("img", img) 
+        #cv2.waitKey(0)
+        #cv2.destroyAllWindows()
         img_id = data['img_metas'][0].data[0][0]['img_info']['id']
         label = data['img_metas'][0].data[0][0]['label']
+        print("*******")
+        print(img_id, label)
+        print("*******")
         img_ids.append(img_id)
         img_labels.append(label)
+        
 
         if rank == 0:
             batch_size = data['img'][0][0].size(0)
@@ -172,6 +195,8 @@ def main():
     for i in range(avg):
         cfg.data.test.position = i 
         dataset = build_dataset(cfg.data.test) 
+        print("Dataset length == ", len(dataset))
+        print("Dataset Classes ==== ", dataset.CLASSES)
         data_loader = build_dataloader(
             dataset,
             samples_per_gpu=1,
@@ -188,6 +213,7 @@ def main():
         checkpoint = load_checkpoint(model, args.checkpoint, map_location='cpu')
         # old versions did not save class info in checkpoints, this walkaround is
         # for backward compatibility
+
         
         if 'CLASSES' in checkpoint['meta']:
             model.CLASSES = checkpoint['meta']['CLASSES']
@@ -202,6 +228,10 @@ def main():
             device_ids=[torch.cuda.current_device()],
             broadcast_buffers=False)
         outputs, img_ids, img_labels = multi_gpu_test(model, data_loader, args.tmpdir)
+        #outputs = single_gpu_test(model, data_loader, show=True)
+        print("**********************************************************")
+        print(outputs)
+        print("*******************************************************")
 
         rank, _ = get_dist_info()
         if args.out and rank == 0:
@@ -216,6 +246,7 @@ def main():
                 else:
                     if not isinstance(outputs[0], dict):
                         result_files = results2json(dataset, outputs, img_ids, img_labels, args.out)
+                        print("results =========== ", result_files)
                         coco_eval(result_files, eval_types, dataset.coco, img_ids=img_ids, img_labels=img_labels)
 
 if __name__ == '__main__':
