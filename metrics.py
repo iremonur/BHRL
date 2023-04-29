@@ -29,10 +29,6 @@ def accuracy_metric(predictions, gt_json):
             predicted_ids.append(pred["image_id"])
             if pred["image_id"] in absent_ids:
                 fp+=1
-
-    print(gt_ids)
-    print("#")
-    print(predicted_ids)
     
     print("LEN GT : ", len(gt_ids))
     print("LEN PREDS : ", len(predicted_ids))

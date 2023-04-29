@@ -160,7 +160,7 @@ test_pipeline = [
         ])
 ]
 
-VOT_CLASS = "group2"
+VOT_CLASS = "ballet"
 
 data = dict(
     samples_per_gpu=1,
