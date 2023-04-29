@@ -160,6 +160,8 @@ test_pipeline = [
         ])
 ]
 
+VOT_CLASS = "group2"
+
 data = dict(
     samples_per_gpu=1,
     workers_per_gpu=1,
@@ -176,7 +178,7 @@ data = dict(
     test=dict(
         type=dataset_type,
         #ann_file=data_root + 'vot_annotation/vot_person7_test_nan_experiment_only_first_img.json',
-        ann_file="/home/ionur2/Desktop/MSc_THESIS/BHRL/data/VOT/vot_annotation/person7/vot_person7_test.json",
+        ann_file="/home/ionur2/Desktop/MSc_THESIS/BHRL/vot_annotation/{}/vot_{}_test_absent.json". format(VOT_CLASS, VOT_CLASS),
         img_prefix=data_root,
         pipeline=test_pipeline,
         test_seen_classes=test_seen_classes,
