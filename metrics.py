@@ -35,7 +35,7 @@ def accuracy_metric(predictions, gt_json):
     print(predicted_ids)
     
     print("LEN GT : ", len(gt_ids))
-    print("LEN PREDS : ", len(preds[1:]))
+    print("LEN PREDS : ", len(predicted_ids))
     tn = len(set(gt_ids).difference(predicted_ids))
     acc = 100 * (tp+tn) / (tp+tn+fp+fn) 
     print("FP : ", fp)
