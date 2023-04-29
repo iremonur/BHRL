@@ -1,0 +1,279 @@
+import matplotlib.pyplot as plt
+
+feature_map = x.squeeze(0)
+gray_scale = torch.sum(feature_map,0)
+gray_scale = gray_scale / feature_map.shape[0]
+gray_scale = gray_scale.data.cpu().numpy()
+fig = plt.figure(figsize=(30, 50))
+plt.imshow(gray_scale)
+plt.savefig(str('/home/ionur2/Desktop/MSc_THESIS/BHRL/step_step/person14_resnet_reslayer_1_out.jpg'), bbox_inches='tight')
+
+
+st = preds[0][:2]
+e = preds[0][2:-1]
+st = (int(st[0]), int(st[1]))
+e = (int(e[0]), int(e[1]))
+img = cv2.rectangle(img, st, e, (0,0,255), 2)
+
+cv2.imwrite("/home/ionur2/Desktop/MSc_THESIS/BHRL/images/deneme.jpg", image)
+
+
+
+1, 64, 512 512
+1, 64, 256 256
+1, 256, 256, 256
+1, 512, 128, 128
+1, 1024, 64, 64
+1, 2048, 32, 32
+
+
+matchten önce:
+torch.Size([1, 256, 256, 256])
+torch.Size([1, 256, 128, 128])
+torch.Size([1, 256, 64, 64])
+torch.Size([1, 256, 32, 32])
+torch.Size([1, 256, 16, 16])
+####
+torch.Size([1, 256, 48, 48])
+torch.Size([1, 256, 24, 24])
+torch.Size([1, 256, 12, 12])
+torch.Size([1, 256, 6, 6])
+torch.Size([1, 256, 3, 3])
+
+
+matchten sonra:
+torch.Size([1, 384, 256, 256])
+torch.Size([1, 384, 128, 128])
+torch.Size([1, 384, 64, 64])
+torch.Size([1, 384, 32, 32])
+torch.Size([1, 384, 16, 16])
+
+
+ref featler birleşti -> [1, 256, 7, 7]
+
+self.rpn_head.simple_test_rpn(similarity map, img_metas)
+
+
+[1, 256, 256, 256]) sim map1 rpn conv out
+[1, 256, 256, 256]) sim map1 rpn relu out
+[1, 3, 256, 256]) sim map1 rpn_cls out
+[1, 12, 256, 256]) sim map1 rpn_bbox out
+
+[1, 256, 128, 128]) sim map1 rpn conv out
+[1, 256, 128, 128]) sim map1 rpn relu out
+[1, 3, 128, 128]) sim map1 rpn_cls out
+[1, 12, 128, 128]) sim map1 rpn_bbox out
+
+[1, 256, 64, 64]) sim map1 rpn conv out
+[1, 256, 64, 64]) sim map1 rpn relu out
+[1, 3, 64, 64]) sim map1 rpn_cls out
+[1, 12, 64, 64]) sim map1 rpn_bbox out
+
+[1, 256, 32, 32]) sim map1 rpn conv out
+[1, 256, 32, 32]) sim map1 rpn relu out
+[1, 3, 32, 32]) sim map1 rpn_cls out
+[1, 12, 32, 32]) sim map1 rpn_bbox out
+
+[1, 256, 16, 16]) sim map1 rpn conv out
+[1, 256, 16, 16]) sim map1 rpn relu out
+[1, 3, 16, 16]) sim map1 rpn_cls out
+[1, 12, 16, 16]) sim map1 rpn_bbox out
+
+proposal_list = self.get_bboxes(*rpn_outs, img_metas)
+rpn outs 2 elemanlı, ilinin içinde 5 tane cls skor, ikincisinde 5 tane reg skor
+
+base anchors:
+tensor([-22.6274, -11.3137,  22.6274,  11.3137])
+tensor([-16., -16.,  16.,  16.])
+tensor([-11.3137, -22.6274,  11.3137,  22.6274])
+
+#256,256 feat map 
+all_anchors =  torch.Size([196608, 4])
+#128,128
+all_anchors =  torch.Size([49152, 4])
+#64,64
+all_anchors =  torch.Size([12288, 4])
+#32,32
+all_anchors =  torch.Size([3072, 4])
+#16,15
+all_anchors =  torch.Size([768, 4])
+
+
+for 256,256
+rpn_bbox_pred.shape
+torch.Size([1, 196608, 4])
+anchors.shape
+torch.Size([1, 196608, 4])
+scores.shape
+torch.Size([1, 196608])
+büyükten küçüğe sıralandı, cfg.nms_pre tanesi alındı
+her level için birleşti
+
+
+    """Apply deltas to shift/scale base boxes.
+
+    Typically the rois are anchor or proposed bounding boxes and the deltas are
+    network outputs used to shift/scale those boxes.
+    This is the inverse function of :func:`bbox2delta`.
+bboxes'a döndükten sonra
+bboxes.shape
+torch.Size([1, 4768, 4])
+bboxes[0][0]
+tensor([536.3110, 310.6432, 551.5721, 361.4312], device='cuda:0')
+
+cfg.min_bbox_size=0
+w'si h'ı cfg.min_bbox_size'dan fazla olanlar alındı
+mlvl_proposals.shape
+torch.Size([4551, 4])
+mlvl_scores.shape
+torch.Size([4551])
+mlvl_ids.shape
+torch.Size([4551])
+
+nms uygulandı
+cfg.nms
+{'type': 'nms', 'iou_threshold': 0.7}
+dets.shape
+torch.Size([1554, 5])
+
+cfg.max_per_img kadarı alındı
+result_list[0].shape
+torch.Size([1000, 5]) -> proposal_list
+tensor([536.3110, 310.6432, 551.5721, 361.4312,   1.0000], device='cuda:0')
+tensor([4.7072e+02, 1.0537e+02, 6.6026e+02, 5.4486e+02, 2.2451e-03],
+       device='cuda:0')
+
+self.roi_head.simple_test(
+            x, img_feat, ref_roi_feats, proposal_list, img_metas, rescale=rescale)
+
+def bbox2roi(proposal_list):
+    """Convert a list of bboxes to roi format.
+rois[1]
+tensor([  0.0000, 534.5788, 312.2908, 549.3893, 352.5439], device='cuda:0')
+
+self._bbox_forward(stage, x, img_feat, ref_roi_feats, rois)
+target_feats = bbox_roi_extractor(img_feat[:bbox_roi_extractor.num_inputs],rois)
+burada ,img'ın ilk 4 level featını alıyor, enteresan 
+def map_roi_levels(self, rois, num_levels):
+    """Map rois to corresponding feature levels by scales.
+Buraya rois girdi.
+rois.shape
+torch.Size([1000, 5])
+roi_feats çıktı
+roi_feats.shape
+torch.Size([1000, 256, 7, 7]) -> target feats
+
+cls_score, bbox_pred = bbox_head(target_feats, rois = rois, query=ref_roi_feats) -> rois işlevi yok sayıl alınıyor sadece
+target_feats.shape
+torch.Size([1000, 256, 7, 7])
+rois.shape
+torch.Size([1000, 5])
+ref_roi_feats.shape
+torch.Size([1, 256, 7, 7])
+
+relation = self.metric_module(target,query[inds.long()])  -> IHR!!!
+query[inds.long()].shape
+torch.Size([1000, 256, 7, 7])
+target.shape
+torch.Size([1000, 256, 7, 7])
+contrastive_feat.shape
+torch.Size([1000, 128, 7, 7])
+salient_feat.shape
+torch.Size([1000, 128, 7, 7])
+attention_feat.shape
+torch.Size([1000, 128, 7, 7])
+contrastive_and_salient_feat.shape
+torch.Size([1000, 128, 7, 7])
+output.shape
+torch.Size([1000, 512, 7, 7])
+output.shape
+torch.Size([1000, 384, 7, 7])
+
+relation_fc.shape
+torch.Size([1000, 1024])
+cls_score.shape
+torch.Size([1000, 2])
+cls_score[0]
+tensor([ 2.4817, -2.4116], device='cuda:0')
+cls_score[1]
+tensor([ 1.5012, -1.4712], device='cuda:0')
+bbox_pred.shape
+torch.Size([1000, 4])
+
+@force_fp32(apply_to=('cls_score', 'bbox_pred'))
+def get_bboxes(self,
+                rois,
+                cls_score,
+                bbox_pred,
+                img_shape,
+                scale_factor,
+                rescale=False,
+                cfg=None):
+    """Transform network output for a batch into bbox predictions.
+
+    In most case except Cascade R-CNN, HTC, AugTest..,
+    the dimensions of input rois, cls_score, bbox_pred are equal
+    to 3, and batch dimension is the first dimension, for example
+    roi has shape (B, num_boxes, 5), return is a
+    tuple[list[Tensor], list[Tensor]],
+    the length of list in tuple is equal to the batch_size.
+    otherwise, the input tensor has only 2 dimensions,
+    and return is a tuple[Tensor, Tensor].
+
+
+
+det_bbox, det_label = multiclass_nms(bbox, score,
+                                        cfg.score_thr, cfg.nms,
+                                        cfg.max_per_img)
+len(bbox)
+1000
+len(score)
+1000
+cfg.score_thr
+0.05
+cfg.nms
+{'type': 'nms', 'iou_threshold': 0.5}
+def multiclass_nms(multi_bboxes,
+                   multi_scores,
+                   score_thr,
+                   nms_cfg,
+                   max_num=-1,
+                   score_factors=None,
+                   return_inds=False):
+    """NMS for multi-class bboxes.
+
+    Args:
+        multi_bboxes (Tensor): shape (n, #class*4) or (n, 4)
+        multi_scores (Tensor): shape (n, #class), where the last column
+            contains scores of the background class, but this will be ignored.
+        score_thr (float): bbox threshold, bboxes with scores lower than it
+            will not be considered.
+        nms_thr (float): NMS IoU threshold
+        max_num (int, optional): if there are more than max_num bboxes after
+            NMS, only top max_num will be kept. Default to -1.
+        score_factors (Tensor, optional): The factors multiplied to scores
+            before applying NMS. Default to None.
+        return_inds (bool, optional): Whether return the indices of kept
+            bboxes. Default to False.
+
+len(result[0][0])
+15
+result[0][0][0]
+array([670.4065    , 389.05377   , 689.35333   , 451.546     ,
+         0.99255884], dtype=float32)
+
+0.99255884
+0.6150841
+0.59523445
+0.5129597
+0.44099385
+0.42696658
+0.40199447
+0.36580253
+0.2878672
+0.25806603
+0.17114612
+0.08516163
+0.06391347
+0.054873906
+0.05077284

@@ -70,6 +70,7 @@ def build_dataset(cfg, default_args=None):
     else:
         print("ELSEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE***********************************************************************************************************")
         dataset = build_from_cfg(cfg, DATASETS, default_args)
+        print("DATASET = ", len(dataset))
 
     return dataset
 

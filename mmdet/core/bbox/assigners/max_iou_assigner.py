@@ -47,6 +47,7 @@ class MaxIoUAssigner(BaseAssigner):
                  match_low_quality=True,
                  gpu_assign_thr=-1,
                  iou_calculator=dict(type='BboxOverlaps2D')):
+                 
         self.pos_iou_thr = pos_iou_thr
         self.neg_iou_thr = neg_iou_thr
         self.min_pos_iou = min_pos_iou
@@ -90,6 +91,8 @@ class MaxIoUAssigner(BaseAssigner):
             >>> expected_gt_inds = torch.LongTensor([1, 0])
             >>> assert torch.all(assign_result.gt_inds == expected_gt_inds)
         """
+
+        
         assign_on_cpu = True if (self.gpu_assign_thr > 0) and (
             gt_bboxes.shape[0] > self.gpu_assign_thr) else False
         # compute overlap and assign gt on CPU when number of GT is large

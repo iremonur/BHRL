@@ -45,18 +45,54 @@ class BHRL(TwoStageDetector):
         return out
 
     def extract_feat(self, img):
+        #print("start img = ", img[0].shape)
         img_feat = img[0]
         rf_feat = img[1]
         rf_bbox = img[2]
         img_feat = self.backbone(img_feat)
+        """
+        print("after backbone img = ", len(img_feat))
+        print(img_feat[0].shape)
+        print(img_feat[1].shape)
+        print(img_feat[2].shape)
+        print("last  = ", img_feat[3].shape)
+        """
         rf_feat = self.backbone(rf_feat)
+        """
+        print("after backbone rf_img = ", len(rf_feat))
+        print(rf_feat[0].shape)
+        print(rf_feat[1].shape)
+        print(rf_feat[2].shape)
+        print("last  = ", rf_feat[3].shape)
+        """
         if self.with_neck:
             img_feat = self.neck(img_feat)
             rf_feat = self.neck(rf_feat)
+            """
+            print("after neck img = ", len(img_feat))
+            print(img_feat[0].shape)
+            print(img_feat[1].shape)
+            print(img_feat[2].shape)
+            print(img_feat[3].shape)
+            print("last  = ", img_feat[4].shape)
+            
 
-        img_feat_metric = self.matching(img_feat, rf_feat)
+            print("after neck rf_img = ", len(rf_feat))
+            print(rf_feat[0].shape)
+            print(rf_feat[1].shape)
+            print(rf_feat[2].shape)
+            print(rf_feat[3].shape)
+            print("last  = ", rf_feat[4].shape)
+            """
+
+        img_feat_metric = self.matching(img_feat, rf_feat) #Contrastive level?????
+
+        #print("feat metric == ", len(img_feat_metric))
+        #print(len(img_feat_metric))
 
         ref_roi_feats = generate_ref_roi_feats(rf_feat, rf_bbox)
+        #print("region of interest len === ", len(ref_roi_feats))
+        #print("region of interest shape === ", ref_roi_feats[0].shape)
         return tuple(img_feat_metric), tuple(img_feat), ref_roi_feats
 
     def forward_train(self,
@@ -101,10 +137,17 @@ class BHRL(TwoStageDetector):
         """Test without augmentation."""
         assert self.with_bbox, "Bbox head must be implemented."
 
+        #print("0 = ", img[0])
+        #print("1 = ", img[1])
+        #print("2 = ", img[2])
         x, img_feat, ref_roi_feats = self.extract_feat(img)
 
         if proposals is None:
             proposal_list = self.rpn_head.simple_test_rpn(x, img_metas)
+            #print("#################################################################")
+            #print("proposal list len == ", len(proposal_list))
+            #print("proposal list shape == ", proposal_list[0].shape)
+            #print("#################################################################")
         else:
             proposal_list = proposals
 

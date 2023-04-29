@@ -34,11 +34,17 @@ class RPNHead(AnchorHead):
         self.rpn_reg = nn.Conv2d(self.feat_channels, self.num_anchors * 4, 1)
 
     def forward_single(self, x):
+        #print(a)
         """Forward feature map of a single scale level."""
+        #print(x.shape)
         x = self.rpn_conv(x)
         x = F.relu(x, inplace=True)
         rpn_cls_score = self.rpn_cls(x)
         rpn_bbox_pred = self.rpn_reg(x)
+        #print("RPN BBOX OUT === \n" )
+        #print(rpn_bbox_pred.shape)
+        #print(rpn_cls_score.shape)
+        
         return rpn_cls_score, rpn_bbox_pred
 
     def loss(self,
@@ -64,6 +70,7 @@ class RPNHead(AnchorHead):
         Returns:
             dict[str, Tensor]: A dictionary of loss components.
         """
+
         losses = super(RPNHead, self).loss(
             cls_scores,
             bbox_preds,

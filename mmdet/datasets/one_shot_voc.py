@@ -13,6 +13,7 @@ from terminaltables import AsciiTable
 from mmdet.core import eval_recalls
 from .api_wrappers import COCO, COCOeval
 from .builder import DATASETS
+from torchvision.utils import save_image
 
 from .custom import CustomDataset
 
@@ -224,12 +225,18 @@ class OneShotVOCDataset(CustomDataset):
         random.shuffle(l)
 
         position = l[self.position % len(l)]
+        position = 0
+        #ref_path = "/home/ionur2/Desktop/MSc_THESIS/BHRL/data/VOT/person14_img_back.png"
+        #print("position= ",position)
         ref = rf_ids[position]
 
         rf_anns = self.coco.loadAnns(ref)[0]
         rf_img_info['ann'] = rf_anns
         rf_img_info['file_name'] = self.coco.loadImgs(rf_anns['image_id'])[0]['file_name']
         rf_img_info['img_info'] = self.coco.loadImgs(rf_anns['image_id'])[0]
+        #print("####")
+        #print("ref = ", rf_img_info)
+        #print("####")
         return rf_img_info
 
     def prepare_train_img(self, idx):

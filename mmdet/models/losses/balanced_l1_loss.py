@@ -107,6 +107,8 @@ class BalancedL1Loss(nn.Module):
         assert reduction_override in (None, 'none', 'mean', 'sum')
         reduction = (
             reduction_override if reduction_override else self.reduction)
+        
+        print("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA ============================ ", pre)
         loss_bbox = self.loss_weight * balanced_l1_loss(
             pred,
             target,

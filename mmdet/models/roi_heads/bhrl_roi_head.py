@@ -44,6 +44,7 @@ class BHRLRoIHead(BaseRoIHead, BBoxTestMixin, MaskTestMixin):
             bbox_roi_extractor (dict): Config of box roi extractor.
             bbox_head (dict): Config of box in box head.
         """
+
         self.bbox_roi_extractor = ModuleList()
         self.bbox_head = ModuleList()
         if not isinstance(bbox_roi_extractor, list):
@@ -117,11 +118,13 @@ class BHRLRoIHead(BaseRoIHead, BBoxTestMixin, MaskTestMixin):
 
     def _bbox_forward(self, stage, x, img_feat, ref_roi_feats, rois):
         """Box head forward function used in both training and testing."""
+
+        #print(aaaaaaaa)
         bbox_roi_extractor = self.bbox_roi_extractor[stage]
         bbox_head = self.bbox_head[stage]
         
         target_feats = bbox_roi_extractor(img_feat[:bbox_roi_extractor.num_inputs],
-                                        rois)  
+                                        rois)  # target_feats = torch.Size([1000, 256, 7, 7])
 
         cls_score, bbox_pred = bbox_head(target_feats, rois = rois, query=ref_roi_feats)
 

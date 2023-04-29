@@ -58,6 +58,7 @@ class RPLoss(nn.Module):
         assert reduction_override in (None, 'none', 'mean', 'sum')
         reduction = (
             reduction_override if reduction_override else self.reduction)
+        print("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA ============================ ", pre)
         loss = F.cross_entropy(cls_score, label, reduction='none') 
         # apply weights and do the reduction
         if weight is not None:

@@ -112,6 +112,8 @@ data/
 *.pkl
 *.pkl.json
 *.log.json
+*.pkl.bbox.json
+*.json
 work_dirs/
 
 # Pytorch
@@ -121,6 +123,6 @@ work_dirs/
 
 checkpoints/
 resnet_model/
-
+images/
 # Data Files
 data/

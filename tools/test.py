@@ -24,40 +24,45 @@ from mmdet.models import build_detector
 from mmdet.apis import inference_detector, init_detector, show_result_pyplot
 from mmdet.apis import single_gpu_test
 import numpy as np
+from metrics import accuracy_metric
 
-def multi_gpu_test(model, data_loader, tmpdir=None):
+
+def multi_gpu_test(model, data_loader, tmpdir=None, ann_file=None):
     model.eval()
     results = []
     img_ids = []
     img_labels = []
     dataset = data_loader.dataset
     rank, world_size = get_dist_info()
+    print(rank, world_size)
     if rank == 0:
         prog_bar = mmcv.ProgressBar(len(dataset))
 
+    print(len(data_loader))
     for i, data in enumerate(data_loader):
+        #if not i:
+            #continue
         with torch.no_grad():
             result = model(return_loss=False, rescale=True, **data)
         results.extend(result)
 
-        print("\n pred_size : {} \n". format(len(result[0][0])))
-        print("\n pred      : {} \n". format(result[0][0][0]))
-        print("\n imgmeta   : {} \n". format(data['img_metas']))
-        #img = cv2.imread(os.path.join("/home/ionur2/Desktop/MSc_THESIS/BHRL/data/VOCdevkit", data['img_metas'][0].data[0][0]['img_info']['filename']))
+        #print("\n pred_size : {} \n". format(len(result[0][0])))
+        #print("\n pred      : {} \n". format(result[0][0][0]))
+        #print("\n imgmeta   : {} \n". format(data['img_metas']))
+        img = cv2.imread(os.path.join("/home/ionur2/Desktop/MSc_THESIS/BHRL/data/VOCdevkit", data['img_metas'][0].data[0][0]['img_info']['filename']))
         img = os.path.join("/home/ionur2/Desktop/MSc_THESIS/BHRL/data/VOCdevkit", data['img_metas'][0].data[0][0]['img_info']['filename'])
         #for pred in result[0][0]:
             #print(pred)
             #color = (random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))
-            #show_result_pyplot(model, img, result[0])
+        #show_result_pyplot(model, img, result[0])
             #img = cv2.rectangle(img, (int(pred[0]), int(pred[1])), (int(pred[2]), int(pred[3])), color, 2)
         #cv2.imshow("img", img) 
         #cv2.waitKey(0)
         #cv2.destroyAllWindows()
+
         img_id = data['img_metas'][0].data[0][0]['img_info']['id']
         label = data['img_metas'][0].data[0][0]['label']
-        print("*******")
-        print(img_id, label)
-        print("*******")
+        #print(img_id, label)
         img_ids.append(img_id)
         img_labels.append(label)
         
@@ -130,9 +135,9 @@ def collect_results_id(result_part, size, img_ids_part, img_labels_part, tmpdir=
 
 def parse_args():
     parser = argparse.ArgumentParser(description='BHRL test detector')
-    parser.add_argument('config', help='test config file path')
-    parser.add_argument('checkpoint', help='checkpoint file')
-    parser.add_argument('--out', help='output result file')
+    parser.add_argument('--config', help='test config file path', default="configs/vot/BHRL.py")
+    parser.add_argument('--checkpoint', help='checkpoint file', default="checkpoints/model_split3.pth")
+    parser.add_argument('--out', default="vot_results_tightrope.pkl", help='output result file')
     parser.add_argument(
         '--json_out',
         help='output result file name without extension',
@@ -140,6 +145,7 @@ def parse_args():
     parser.add_argument(
         '--eval',
         type=str,
+        default='bbox',
         nargs='+',
         choices=['proposal', 'proposal_fast', 'bbox', 'segm', 'keypoints'],
         help='eval types')
@@ -151,7 +157,7 @@ def parse_args():
         help='job launcher')
     parser.add_argument('--local_rank', type=int, default=0)
     parser.add_argument('--average', type=int, default=1)
-    parser.add_argument('--test_seen_classes', action='store_true', help='test seen classes')
+    parser.add_argument('--test_seen_classes', action='store_true', help='test seen classes', default=True)
     args = parser.parse_args()
     if 'LOCAL_RANK' not in os.environ:
         os.environ['LOCAL_RANK'] = str(args.local_rank)
@@ -190,6 +196,7 @@ def main():
         cfg.data.test.test_seen_classes = True
     else:
         cfg.data.test.test_seen_classes = False
+    
     # build the dataloader
     # TODO: support multiple images per gpu (only minor changes are needed)
     for i in range(avg):
@@ -227,11 +234,9 @@ def main():
             model.cuda(),
             device_ids=[torch.cuda.current_device()],
             broadcast_buffers=False)
-        outputs, img_ids, img_labels = multi_gpu_test(model, data_loader, args.tmpdir)
-        #outputs = single_gpu_test(model, data_loader, show=True)
-        print("**********************************************************")
-        print(outputs)
-        print("*******************************************************")
+        
+        ann_file = cfg.data.test.ann_file
+        outputs, img_ids, img_labels = multi_gpu_test(model, data_loader, args.tmpdir, ann_file)
 
         rank, _ = get_dist_info()
         if args.out and rank == 0:
@@ -246,8 +251,21 @@ def main():
                 else:
                     if not isinstance(outputs[0], dict):
                         result_files = results2json(dataset, outputs, img_ids, img_labels, args.out)
-                        print("results =========== ", result_files)
+                        acc = accuracy_metric(result_files, ann_file)
+                        print("###################################################################################################### ACC = ", acc)
                         coco_eval(result_files, eval_types, dataset.coco, img_ids=img_ids, img_labels=img_labels)
 
+
+def setup(rank, world_size):
+    os.environ['MASTER_ADDR'] = 'localhost'
+    os.environ['MASTER_PORT'] = '29502'
+
+
+    # initialize the process group
+    dist.init_process_group("nccl", rank=rank, world_size=world_size)
+
 if __name__ == '__main__':
+    rank = 0
+    world_size = 1
+    setup(rank, world_size)
     main()
