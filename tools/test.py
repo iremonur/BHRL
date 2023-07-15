@@ -25,6 +25,8 @@ from mmdet.apis import inference_detector, init_detector, show_result_pyplot
 from mmdet.apis import single_gpu_test
 import numpy as np
 from metrics import accuracy_metric
+from torchvision.utils import save_image
+from torchviz import make_dot
 
 
 def multi_gpu_test(model, data_loader, tmpdir=None, ann_file=None):
@@ -38,27 +40,38 @@ def multi_gpu_test(model, data_loader, tmpdir=None, ann_file=None):
     if rank == 0:
         prog_bar = mmcv.ProgressBar(len(dataset))
 
+    max_score = []
     print(len(data_loader))
     for i, data in enumerate(data_loader):
         #if not i:
             #continue
+        #if not (i%200):
+        #save_image(data["img"][0][1], "/home/ionur2/Desktop/MSc_THESIS/BHRL/refs/sample/img_ref_{}.png".format(i))
+        #save_image(data["img"][0][0], "/home/ionur2/Desktop/MSc_THESIS/BHRL/refs/sample/img_{}.png".format(i))
         with torch.no_grad():
             result = model(return_loss=False, rescale=True, **data)
+        last = result[0][0].shape[0] - 1
+        #result[0][0] = result[0][0][:-last]
+        if not last:
+            max_score.append(result[0][0][0][-1])
+        else:
+            max_score.append(result[0][0][:-last]) 
         results.extend(result)
+        #print(max_score)
 
-        #print("\n pred_size : {} \n". format(len(result[0][0])))
-        #print("\n pred      : {} \n". format(result[0][0][0]))
-        #print("\n imgmeta   : {} \n". format(data['img_metas']))
         img = cv2.imread(os.path.join("/home/ionur2/Desktop/MSc_THESIS/BHRL/data/VOCdevkit", data['img_metas'][0].data[0][0]['img_info']['filename']))
-        img = os.path.join("/home/ionur2/Desktop/MSc_THESIS/BHRL/data/VOCdevkit", data['img_metas'][0].data[0][0]['img_info']['filename'])
+        #img = os.path.join("/home/ionur2/Desktop/MSc_THESIS/BHRL/data/VOCdevkit", data['img_metas'][0].data[0][0]['img_info']['filename'])
         #for pred in result[0][0]:
             #print(pred)
             #color = (random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))
-        #show_result_pyplot(model, img, result[0])
-            #img = cv2.rectangle(img, (int(pred[0]), int(pred[1])), (int(pred[2]), int(pred[3])), color, 2)
+        #if not (i%100):
+            #show_result_pyplot(model, img, result[0])
+            #img = cv2.rectangle(img, (int(pred[0]), int(pred[1])), (int(pred[2]), int(pred[3])), (0,0,255), 2)
         #cv2.imshow("img", img) 
         #cv2.waitKey(0)
         #cv2.destroyAllWindows()
+        #print("/home/ionur2/Desktop/MSc_THESIS/BHRL/person14_vis_res/{}". format(os.path.split(data['img_metas'][0].data[0][0]['img_info']['filename'])[-1]))
+        #cv2.imwrite("/home/ionur2/Desktop/MSc_THESIS/BHRL/group3_vis_res/{}". format(os.path.split(data['img_metas'][0].data[0][0]['img_info']['filename'])[-1]), img)
 
         img_id = data['img_metas'][0].data[0][0]['img_info']['id']
         label = data['img_metas'][0].data[0][0]['label']
@@ -73,7 +86,7 @@ def multi_gpu_test(model, data_loader, tmpdir=None, ann_file=None):
                 prog_bar.update()
     # collect results from all ranks
     results, img_ids, img_labels = collect_results_id(results, len(dataset), img_ids, img_labels, tmpdir)
-
+    np.save("/home/ionur2/Desktop/MSc_THESIS/BHRL/results/VOT_results/person14_pretrained_voc_e20.npy", max_score)
     return results, img_ids, img_labels
 
 def collect_results_id(result_part, size, img_ids_part, img_labels_part, tmpdir=None):
@@ -137,7 +150,7 @@ def parse_args():
     parser = argparse.ArgumentParser(description='BHRL test detector')
     parser.add_argument('--config', help='test config file path', default="configs/vot/BHRL.py")
     parser.add_argument('--checkpoint', help='checkpoint file', default="checkpoints/model_split3.pth")
-    parser.add_argument('--out', default="vot_results_tightrope.pkl", help='output result file')
+    parser.add_argument('--out', default="vot_results.pkl", help='output result file')
     parser.add_argument(
         '--json_out',
         help='output result file name without extension',
@@ -251,8 +264,8 @@ def main():
                 else:
                     if not isinstance(outputs[0], dict):
                         result_files = results2json(dataset, outputs, img_ids, img_labels, args.out)
-                        acc = accuracy_metric(result_files, ann_file)
-                        print("###################################################################################################### ACC = ", acc)
+                        #acc = accuracy_metric(result_files, ann_file)
+                        #print("###################################################################################################### ACC = ", acc)
                         coco_eval(result_files, eval_types, dataset.coco, img_ids=img_ids, img_labels=img_labels)
 
 

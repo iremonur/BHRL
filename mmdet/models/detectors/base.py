@@ -143,10 +143,6 @@ class BaseDetector(BaseModule, metaclass=ABCMeta):
             # proposals.
             if 'proposals' in kwargs:
                 kwargs['proposals'] = kwargs['proposals'][0]
-            #print(img_metas)
-            #print("img  == ", imgs[0][0].shape)
-            #print("imgs meta len == ", img_metas[0])
-            #print("img == ", imgs[0][1].shape)
             return self.simple_test(imgs[0], img_metas[0], **kwargs)
         else:
             assert imgs[0].size(0) == 1, 'aug test does not support ' \

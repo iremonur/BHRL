@@ -119,7 +119,7 @@ class BHRLRoIHead(BaseRoIHead, BBoxTestMixin, MaskTestMixin):
     def _bbox_forward(self, stage, x, img_feat, ref_roi_feats, rois):
         """Box head forward function used in both training and testing."""
 
-        #print(aaaaaaaa)
+
         bbox_roi_extractor = self.bbox_roi_extractor[stage]
         bbox_head = self.bbox_head[stage]
         

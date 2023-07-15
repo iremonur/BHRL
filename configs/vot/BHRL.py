@@ -38,10 +38,11 @@ model = dict(
         type='BHRLRoIHead',
         bbox_roi_extractor=dict(
             type='SingleRoIExtractor',
-            roi_layer=dict(
-                type='DeformRoIPoolPack',
-                output_size=7,
-                output_channels=256),
+            # roi_layer=dict(
+            #     type='DeformRoIPoolPack',
+            #     output_size=7,
+            #     output_channels=256),
+            roi_layer=dict(type='RoIAlign', out_size=7, sampling_ratio=0),
             out_channels=256,
             featmap_strides=[4, 8, 16, 32]),
         bbox_head=[
@@ -115,7 +116,7 @@ model = dict(
             nms=dict(type='nms', iou_threshold=0.7),
             min_bbox_size=0),
         rcnn=dict(
-            score_thr=0.30,
+            score_thr=0.05,
             nms=dict(type='nms', iou_threshold=0.5),
             max_per_img=100,
             mask_thr_binary=0.5)))
@@ -160,14 +161,17 @@ test_pipeline = [
         ])
 ]
 
-VOT_CLASS = "ballet"
+VOT_CLASS = "group3"
 
 data = dict(
     samples_per_gpu=1,
     workers_per_gpu=1,
     train=dict(
         type=dataset_type,
-        ann_file=data_root + 'vot_annotation/vot_train.json',
+        #ann_file="/home/ionur2/Desktop/MSc_THESIS/BHRL/vot_annotation/{}/vot_{}_test.json". format(VOT_CLASS, VOT_CLASS),
+        #ann_file="/home/ionur2/Desktop/MSc_THESIS/BHRL/vot_annotation/ft/group1_reverse_quarter_ft.json",
+        #ann_file="/home/ionur2/Desktop/MSc_THESIS/BHRL/deneme.json",
+        ann_file="/home/ionur2/Desktop/MSc_THESIS/BHRL/vot_annotation/ft/{}_first_ft.json". format(VOT_CLASS),
         img_prefix=data_root,
         pipeline=train_pipeline),
     val=dict(
@@ -178,7 +182,7 @@ data = dict(
     test=dict(
         type=dataset_type,
         #ann_file=data_root + 'vot_annotation/vot_person7_test_nan_experiment_only_first_img.json',
-        ann_file="/home/ionur2/Desktop/MSc_THESIS/BHRL/vot_annotation/{}/vot_{}_test_absent.json". format(VOT_CLASS, VOT_CLASS),
+        ann_file="/home/ionur2/Desktop/MSc_THESIS/BHRL/vot_annotation/{}/vot_{}_test.json". format(VOT_CLASS, VOT_CLASS),
         img_prefix=data_root,
         pipeline=test_pipeline,
         test_seen_classes=test_seen_classes,
@@ -194,7 +198,8 @@ lr_config = dict(
     warmup_iters=500,
     warmup_ratio=0.001,
     step=[6])
-runner = dict(type='EpochBasedRunner', max_epochs=9)
+# runner = dict(type='EpochBasedRunner', max_epochs=9)
+runner = dict(type='EpochBasedRunner', max_epochs=19)
 checkpoint_config = dict(interval=1)
 # yapf:disable
 log_config = dict(
@@ -207,7 +212,8 @@ log_config = dict(
 
 dist_params = dict(backend='nccl')
 log_level = 'INFO'
-work_dir = 'work_dirs/vot/BHRL'
+work_dir = "/home/ionur2/Desktop/MSc_THESIS/BHRL/work_dirs/vot/BHRL/first_images_seperate/{}".format(VOT_CLASS)
 load_from = 'resnet_model/res50_loadfrom.pth'
-resume_from = None
+#resume_from = '/home/ionur2/Desktop/MSc_THESIS/BHRL/checkpoints/model_split3.pth'
+resume_from=None
 workflow = [('train', 1)]

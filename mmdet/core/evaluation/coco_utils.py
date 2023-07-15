@@ -61,6 +61,8 @@ def coco_eval(result_files,
         cocoEval.evaluate()
         cocoEval.accumulate()
         cocoEval.summarize()
+        #np.save("/home/ionur2/Desktop/MSc_THESIS/BHRL/results.npy", cocoEval.stats)
+        #np.save("/home/ionur2/Desktop/MSc_THESIS/BHRL/results.npy", res_)
 
         classwise_ = False 
         if classwise_: 
@@ -73,7 +75,6 @@ def coco_eval(result_files,
                 cocoEval.evaluate()
                 cocoEval.accumulate()
                 cocoEval.summarize()
-
 
 def fast_eval_recall(results,
                      coco,

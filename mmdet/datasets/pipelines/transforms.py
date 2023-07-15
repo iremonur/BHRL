@@ -8,6 +8,7 @@ from numpy import random
 from mmdet.core import PolygonMasks
 from mmdet.core.evaluation.bbox_overlaps import bbox_overlaps
 from ..builder import PIPELINES
+import math
 
 try:
     from imagecorruptions import corrupt
@@ -587,9 +588,16 @@ class Pad:
     def _pad_img(self, results):
         """Pad images according to ``self.size``."""
         for key in results.get('img_fields', ['img']):
+
             if self.size is not None:
                 padded_img = mmcv.impad(
                     results[key], shape=self.size, pad_val=self.pad_val)
+                
+                #padded_img = mmcv.impad(results[key], padding=(0, math.floor((self.size[1]-results[key].shape[0])/2), 0, math.floor((self.size[1]-results[key].shape[0])/2)), pad_val=0)
+
+        
+                
+
             elif self.size_divisor is not None:
                 padded_img = mmcv.impad_to_multiple(
                     results[key], self.size_divisor, pad_val=self.pad_val)
@@ -1925,12 +1933,26 @@ class ReferenceTransform(object):
                                                     return_scale=True)
             scale_factor = np.array([w_scale, h_scale, w_scale, h_scale],
                                     dtype=np.float32)
+            
+
         # img.shape: h, w, c
         results['rf_bbox'] = [0, 0, rf_img.shape[1], rf_img.shape[0]]
         
         rf_img = mmcv.imnormalize(rf_img, self.mean, self.std,
                                 self.to_rgb)  # normalize
         rf_img = mmcv.impad(rf_img, shape=self.img_scale)  # pad
+
+
+        
+        old_image_height, old_image_width, channels = rf_img.shape
+        x_center = (self.img_scale[1] - old_image_width) // 2
+        y_center = (self.img_scale[0] - old_image_height) // 2
+
+        #results['rf_bbox'] = [x_center, y_center, rf_img.shape[1], rf_img.shape[0]]
+
+        #rf_img = mmcv.impad(rf_img, padding=(math.floor((self.img_scale[1]-rf_img.shape[1])/2), 0, math.ceil((self.img_scale[1]-rf_img.shape[1])/2), 0), pad_val=0)
+      
+        
         rf_img = rf_img.transpose(2, 0, 1)  # transpose
 
         results['rf_img'] = np.ascontiguousarray(rf_img)

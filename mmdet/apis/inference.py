@@ -232,7 +232,7 @@ def show_result_pyplot(model,
     model.show_result(
         img,
         result,
-        score_thr=score_thr,
+        score_thr=0.50,
         show=True,
         wait_time=wait_time,
         win_name=title,

@@ -1,0 +1,141 @@
+{
+    "images": [
+        {
+            "file_name": "/home/ionur2/Desktop/MSc_THESIS/BHRL/data/VOT/warmup_imgs/00000001.jpg",
+            "height": 720,
+            "width": 1280,
+            "id": 1
+        }
+    ],
+    "type": "instances",
+    "annotations": [
+        {
+            "segmentation": [
+                [
+                    47,
+                    239,
+                    47,
+                    371,
+                    195,
+                    371,
+                    195,
+                    239
+                ]
+            ],
+            "area": 18711,
+            "iscrowd": 0,
+            "image_id": 1,
+            "bbox": [
+                297,
+                300,
+                77,
+                243
+            ],
+            "category_id": 15,
+            "id": 1,
+            "ignore": 0
+        }
+    ],
+    "categories": [
+        {
+            "supercategory": "none",
+            "id": 1,
+            "name": "aeroplane"
+        },
+        {
+            "supercategory": "none",
+            "id": 2,
+            "name": "bicycle"
+        },
+        {
+            "supercategory": "none",
+            "id": 3,
+            "name": "bird"
+        },
+        {
+            "supercategory": "none",
+            "id": 4,
+            "name": "boat"
+        },
+        {
+            "supercategory": "none",
+            "id": 5,
+            "name": "bottle"
+        },
+        {
+            "supercategory": "none",
+            "id": 6,
+            "name": "bus"
+        },
+        {
+            "supercategory": "none",
+            "id": 7,
+            "name": "car"
+        },
+        {
+            "supercategory": "none",
+            "id": 8,
+            "name": "cat"
+        },
+        {
+            "supercategory": "none",
+            "id": 9,
+            "name": "chair"
+        },
+        {
+            "supercategory": "none",
+            "id": 10,
+            "name": "cow"
+        },
+        {
+            "supercategory": "none",
+            "id": 11,
+            "name": "diningtable"
+        },
+        {
+            "supercategory": "none",
+            "id": 12,
+            "name": "dog"
+        },
+        {
+            "supercategory": "none",
+            "id": 13,
+            "name": "horse"
+        },
+        {
+            "supercategory": "none",
+            "id": 14,
+            "name": "motorbike"
+        },
+        {
+            "supercategory": "none",
+            "id": 15,
+            "name": "person"
+        },
+        {
+            "supercategory": "none",
+            "id": 16,
+            "name": "pottedplant"
+        },
+        {
+            "supercategory": "none",
+            "id": 17,
+            "name": "sheep"
+        },
+        {
+            "supercategory": "none",
+            "id": 18,
+            "name": "sofa"
+        },
+        {
+            "supercategory": "none",
+            "id": 19,
+            "name": "train"
+        },
+        {
+            "supercategory": "none",
+            "id": 20,
+            "name": "tvmonitor"
+        }
+    ]
+}

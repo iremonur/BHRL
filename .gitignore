@@ -114,8 +114,10 @@ data/
 *.log.json
 *.pkl.bbox.json
 *.png
+*.jpg
 work_dirs/
-
+*.out
+*.txt
 # Pytorch
 *.pth
 *.py~

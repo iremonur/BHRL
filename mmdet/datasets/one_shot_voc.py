@@ -13,7 +13,6 @@ from terminaltables import AsciiTable
 from mmdet.core import eval_recalls
 from .api_wrappers import COCO, COCOeval
 from .builder import DATASETS
-from torchvision.utils import save_image
 
 from .custom import CustomDataset
 
@@ -41,6 +40,7 @@ class OneShotVOCDataset(CustomDataset):
                  position=0):
         self.split = [1, 8, 10, 17]
         self.test_seen_classes = test_seen_classes
+        #self.test_seen_classes = False
         self.position = position
         classes = None 
         super(OneShotVOCDataset,
@@ -62,7 +62,8 @@ class OneShotVOCDataset(CustomDataset):
         self.test_cat = []
         for i in range(len(self.cat_ids)):
             if (i + 1) in self.split:
-                self.test_cat.append(self.cat_ids[i])
+                #self.test_cat.append(self.cat_ids[i])
+                self.train_cat.append(self.cat_ids[i])
             else:
                 self.train_cat.append(self.cat_ids[i])
         if self.test_seen_classes:
@@ -224,19 +225,16 @@ class OneShotVOCDataset(CustomDataset):
         l = list(range(len(rf_ids)))
         random.shuffle(l)
 
-        position = l[self.position % len(l)]
+        #position = l[self.position % len(l)]
+        #remain = int(idx / 15)
+        #position = remain*15
         position = 0
-        #ref_path = "/home/ionur2/Desktop/MSc_THESIS/BHRL/data/VOT/person14_img_back.png"
-        #print("position= ",position)
         ref = rf_ids[position]
 
         rf_anns = self.coco.loadAnns(ref)[0]
         rf_img_info['ann'] = rf_anns
         rf_img_info['file_name'] = self.coco.loadImgs(rf_anns['image_id'])[0]['file_name']
         rf_img_info['img_info'] = self.coco.loadImgs(rf_anns['image_id'])[0]
-        #print("####")
-        #print("ref = ", rf_img_info)
-        #print("####")
         return rf_img_info
 
     def prepare_train_img(self, idx):
