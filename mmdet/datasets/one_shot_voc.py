@@ -41,8 +41,9 @@ class OneShotVOCDataset(CustomDataset):
         self.split = [1, 8, 10, 17]
         self.test_seen_classes = test_seen_classes
         #self.test_seen_classes = False
-        self.position = position
+        self.position = 0
         classes = None 
+        self.found = False
         super(OneShotVOCDataset,
               self).__init__(ann_file, pipeline, classes, data_root, img_prefix,
                              seg_prefix, proposal_file, test_mode)
@@ -228,8 +229,27 @@ class OneShotVOCDataset(CustomDataset):
         #position = l[self.position % len(l)]
         #remain = int(idx / 15)
         #position = remain*15
-        position = 0
-        ref = rf_ids[position]
+        #position = 0
+        
+        # path = "/truba/home/ionur/BHRL/vot_results/target_update_rule/update_frames_95.npy"
+        # arr = np.load(path)
+
+        # f = open("/truba/home/ionur/BHRL/vot_results/target_update_rule/ne.txt", "a")
+
+        # if self.found:
+        #     print(self.position)
+
+        # if idx in arr:
+        #     print(self.position)
+        #     self.position = idx
+        #     self.found = True
+        #     f.write(str(self.position) + "\n")
+
+        #self.position = idx
+
+        self.position = 0
+            
+        ref = rf_ids[self.position]
 
         rf_anns = self.coco.loadAnns(ref)[0]
         rf_img_info['ann'] = rf_anns

@@ -20,7 +20,8 @@ from mmdet.utils import collect_env, get_root_logger
 
 def parse_args():
     parser = argparse.ArgumentParser(description='Train a detector')
-    parser.add_argument('config', default= 'configs/vot/BHRL.py', help='train config file path')
+    parser.add_argument('--config', default= 'configs/vot/BHRL.py', help='train config file path')
+    parser.add_argument('--seq_name', help='the class_name')
     parser.add_argument('--work-dir', help='the dir to save logs and models')
     parser.add_argument(
         '--resume-from', help='the checkpoint file to resume from')
@@ -87,6 +88,11 @@ def main():
     args = parse_args()
 
     cfg = Config.fromfile(args.config)
+
+    cfg.data.train.ann_file = "/truba/home/ionur/BHRL/vot_annotation/ft/{}_first_ft.json". format(args.seq_name)
+    cfg.data.test.ann_file = "/truba/home/ionur/BHRL/vot_annotation/{}/vot_{}_test.json". format(args.seq_name, args.seq_name)
+    cfg.work_dir = "/truba/home/ionur/BHRL/work_dirs/vot/BHRL/first_images_seperate/{}".format(args.seq_name)
+
     if args.cfg_options is not None:
         cfg.merge_from_dict(args.cfg_options)
     # import modules from string list.

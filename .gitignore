@@ -115,6 +115,7 @@ data/
 *.pkl.bbox.json
 *.png
 *.jpg
+*.json
 work_dirs/
 *.out
 *.txt
@@ -128,3 +129,4 @@ resnet_model/
 images/
 # Data Files
 data/
+vot_annotation/

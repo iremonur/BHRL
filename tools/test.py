@@ -26,7 +26,6 @@ from mmdet.apis import single_gpu_test
 import numpy as np
 from metrics import accuracy_metric
 from torchvision.utils import save_image
-from torchviz import make_dot
 
 
 def multi_gpu_test(model, data_loader, tmpdir=None, ann_file=None):
@@ -42,25 +41,29 @@ def multi_gpu_test(model, data_loader, tmpdir=None, ann_file=None):
 
     max_score = []
     print(len(data_loader))
+    num_list = []
     for i, data in enumerate(data_loader):
         #if not i:
             #continue
         #if not (i%200):
-        #save_image(data["img"][0][1], "/home/ionur2/Desktop/MSc_THESIS/BHRL/refs/sample/img_ref_{}.png".format(i))
-        #save_image(data["img"][0][0], "/home/ionur2/Desktop/MSc_THESIS/BHRL/refs/sample/img_{}.png".format(i))
+        #save_image(data["img"][0][1], "/truba/home/ionur/BHRL/refs/sample/img_ref_{}.png".format(i))
+        #save_image(data["img"][0][0], "/truba/home/ionur/BHRL/refs/sample/img_{}.png".format(i))
         with torch.no_grad():
             result = model(return_loss=False, rescale=True, **data)
         last = result[0][0].shape[0] - 1
         #result[0][0] = result[0][0][:-last]
-        if not last:
-            max_score.append(result[0][0][0][-1])
-        else:
-            max_score.append(result[0][0][:-last]) 
+        # if not last:
+        #     max_score.append(result[0][0][0][-1])
+        # else:
+        #     max_score.append(result[0][0][:-last]) 
         results.extend(result)
-        #print(max_score)
+        # max_score = result[0][0][0][-1]
 
-        img = cv2.imread(os.path.join("/home/ionur2/Desktop/MSc_THESIS/BHRL/data/VOCdevkit", data['img_metas'][0].data[0][0]['img_info']['filename']))
-        #img = os.path.join("/home/ionur2/Desktop/MSc_THESIS/BHRL/data/VOCdevkit", data['img_metas'][0].data[0][0]['img_info']['filename'])
+        #if max_score < 0.95:
+            #num_list.append(i)
+
+        #img = cv2.imread(os.path.join("/truba/home/ionur/BHRL/data/VOCdevkit", data['img_metas'][0].data[0][0]['img_info']['filename']))
+        #img = os.path.join("/truba/home/ionur/BHRL/data/VOCdevkit", data['img_metas'][0].data[0][0]['img_info']['filename'])
         #for pred in result[0][0]:
             #print(pred)
             #color = (random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))
@@ -70,8 +73,8 @@ def multi_gpu_test(model, data_loader, tmpdir=None, ann_file=None):
         #cv2.imshow("img", img) 
         #cv2.waitKey(0)
         #cv2.destroyAllWindows()
-        #print("/home/ionur2/Desktop/MSc_THESIS/BHRL/person14_vis_res/{}". format(os.path.split(data['img_metas'][0].data[0][0]['img_info']['filename'])[-1]))
-        #cv2.imwrite("/home/ionur2/Desktop/MSc_THESIS/BHRL/group3_vis_res/{}". format(os.path.split(data['img_metas'][0].data[0][0]['img_info']['filename'])[-1]), img)
+        #print("/truba/home/ionur/BHRL/person14_vis_res/{}". format(os.path.split(data['img_metas'][0].data[0][0]['img_info']['filename'])[-1]))
+        #cv2.imwrite("/truba/home/ionur/BHRL/group3_vis_res/{}". format(os.path.split(data['img_metas'][0].data[0][0]['img_info']['filename'])[-1]), img)
 
         img_id = data['img_metas'][0].data[0][0]['img_info']['id']
         label = data['img_metas'][0].data[0][0]['label']
@@ -86,7 +89,8 @@ def multi_gpu_test(model, data_loader, tmpdir=None, ann_file=None):
                 prog_bar.update()
     # collect results from all ranks
     results, img_ids, img_labels = collect_results_id(results, len(dataset), img_ids, img_labels, tmpdir)
-    np.save("/home/ionur2/Desktop/MSc_THESIS/BHRL/results/VOT_results/person14_pretrained_voc_e20.npy", max_score)
+    #np.save("/truba/home/ionur/BHRL/results/VOT_results/person14_pretrained_voc_e20.npy", max_score)
+    #np.save("/truba/home/ionur/BHRL/vot_results/target_update_rule/update_frames_95.npy", num_list)
     return results, img_ids, img_labels
 
 def collect_results_id(result_part, size, img_ids_part, img_labels_part, tmpdir=None):
@@ -149,6 +153,7 @@ def collect_results_id(result_part, size, img_ids_part, img_labels_part, tmpdir=
 def parse_args():
     parser = argparse.ArgumentParser(description='BHRL test detector')
     parser.add_argument('--config', help='test config file path', default="configs/vot/BHRL.py")
+    parser.add_argument('--seq_name', help='the class_name')
     parser.add_argument('--checkpoint', help='checkpoint file', default="checkpoints/model_split3.pth")
     parser.add_argument('--out', default="vot_results.pkl", help='output result file')
     parser.add_argument(
@@ -192,6 +197,9 @@ def main():
     avg = args.average
 
     cfg = mmcv.Config.fromfile(args.config)
+
+    cfg.data.test.ann_file = "/truba/home/ionur/BHRL/vot_annotation/{}/vot_{}_test.json". format(args.seq_name, args.seq_name)
+
     # set cudnn_benchmark
     if cfg.get('cudnn_benchmark', False):
         torch.backends.cudnn.benchmark = True

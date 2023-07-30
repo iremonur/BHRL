@@ -161,17 +161,18 @@ test_pipeline = [
         ])
 ]
 
-VOT_CLASS = "group3"
+#VOT_CLASS = "group1"
 
 data = dict(
     samples_per_gpu=1,
     workers_per_gpu=1,
     train=dict(
         type=dataset_type,
-        #ann_file="/home/ionur2/Desktop/MSc_THESIS/BHRL/vot_annotation/{}/vot_{}_test.json". format(VOT_CLASS, VOT_CLASS),
-        #ann_file="/home/ionur2/Desktop/MSc_THESIS/BHRL/vot_annotation/ft/group1_reverse_quarter_ft.json",
-        #ann_file="/home/ionur2/Desktop/MSc_THESIS/BHRL/deneme.json",
-        ann_file="/home/ionur2/Desktop/MSc_THESIS/BHRL/vot_annotation/ft/{}_first_ft.json". format(VOT_CLASS),
+        #ann_file="/truba/home/ionur/BHRL/vot_annotation/{}/vot_{}_test.json". format(VOT_CLASS, VOT_CLASS),
+        #ann_file="/truba/home/ionur/BHRL/vot_annotation/ft/group1_reverse_quarter_ft.json",
+        #ann_file="/truba/home/ionur/BHRL/deneme.json",
+        #ann_file="/truba/home/ionur/BHRL/vot_annotation/ft/{}_first_ft.json". format(VOT_CLASS),
+        ann_file="",
         img_prefix=data_root,
         pipeline=train_pipeline),
     val=dict(
@@ -182,7 +183,8 @@ data = dict(
     test=dict(
         type=dataset_type,
         #ann_file=data_root + 'vot_annotation/vot_person7_test_nan_experiment_only_first_img.json',
-        ann_file="/home/ionur2/Desktop/MSc_THESIS/BHRL/vot_annotation/{}/vot_{}_test.json". format(VOT_CLASS, VOT_CLASS),
+        #ann_file="/truba/home/ionur/BHRL/vot_annotation/{}/vot_{}_test.json". format(VOT_CLASS, VOT_CLASS),
+        ann_file="",
         img_prefix=data_root,
         pipeline=test_pipeline,
         test_seen_classes=test_seen_classes,
@@ -199,11 +201,11 @@ lr_config = dict(
     warmup_ratio=0.001,
     step=[6])
 # runner = dict(type='EpochBasedRunner', max_epochs=9)
-runner = dict(type='EpochBasedRunner', max_epochs=19)
+runner = dict(type='EpochBasedRunner', max_epochs=309)
 checkpoint_config = dict(interval=1)
 # yapf:disable
 log_config = dict(
-    interval=20,
+    interval=1,
     hooks=[
         dict(type='TextLoggerHook'),
         # dict(type='TensorboardLoggerHook')
@@ -212,8 +214,9 @@ log_config = dict(
 
 dist_params = dict(backend='nccl')
 log_level = 'INFO'
-work_dir = "/home/ionur2/Desktop/MSc_THESIS/BHRL/work_dirs/vot/BHRL/first_images_seperate/{}".format(VOT_CLASS)
+#work_dir = "/truba/home/ionur/BHRL/work_dirs/vot/BHRL/first_images_seperate/{}".format(VOT_CLASS)
+work_dir = ""
 load_from = 'resnet_model/res50_loadfrom.pth'
-#resume_from = '/home/ionur2/Desktop/MSc_THESIS/BHRL/checkpoints/model_split3.pth'
-resume_from=None
+resume_from = '/truba/home/ionur/BHRL/checkpoints/model_split3.pth'
+#resume_from=None
 workflow = [('train', 1)]
