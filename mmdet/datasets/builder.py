@@ -68,7 +68,6 @@ def build_dataset(cfg, default_args=None):
     elif isinstance(cfg.get('ann_file'), (list, tuple)):
         dataset = _concat_dataset(cfg, default_args)
     else:
-        print("ELSEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE***********************************************************************************************************")
         dataset = build_from_cfg(cfg, DATASETS, default_args)
         print("DATASET = ", len(dataset))
 

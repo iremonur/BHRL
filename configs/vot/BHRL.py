@@ -202,7 +202,7 @@ lr_config = dict(
     step=[6])
 # runner = dict(type='EpochBasedRunner', max_epochs=9)
 runner = dict(type='EpochBasedRunner', max_epochs=309)
-checkpoint_config = dict(interval=1)
+checkpoint_config = dict(interval=5)
 # yapf:disable
 log_config = dict(
     interval=1,

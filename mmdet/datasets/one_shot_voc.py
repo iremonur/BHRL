@@ -20,6 +20,29 @@ import copy
 import random
 
 
+def calculate_iou(bbox1, bbox2):
+    # Calculate the coordinates of the intersection rectangle
+    x1_inter = max(bbox1[0], bbox2[0])
+    y1_inter = max(bbox1[1], bbox2[1])
+    x2_inter = min(bbox1[2], bbox2[2])
+    y2_inter = min(bbox1[3], bbox2[3])
+
+    # If there is no intersection, return 0
+    if x2_inter <= x1_inter or y2_inter <= y1_inter:
+        return 0.0
+
+    # Calculate the areas of the intersection and the union rectangles
+    intersection_area = (x2_inter - x1_inter) * (y2_inter - y1_inter)
+    bbox1_area = (bbox1[2] - bbox1[0]) * (bbox1[3] - bbox1[1])
+    bbox2_area = (bbox2[2] - bbox2[0]) * (bbox2[3] - bbox2[1])
+    union_area = bbox1_area + bbox2_area - intersection_area
+
+    # Calculate the IoU
+    iou = intersection_area / union_area
+
+    return iou
+
+
 @DATASETS.register_module()
 class OneShotVOCDataset(CustomDataset):
 
@@ -248,10 +271,49 @@ class OneShotVOCDataset(CustomDataset):
         #self.position = idx
 
         self.position = 0
+
+        bboxes = np.load("/truba/home/ionur/BHRL/target_update_studies/car16/preds.npy")
             
         ref = rf_ids[self.position]
-
         rf_anns = self.coco.loadAnns(ref)[0]
+
+        if not ((idx+1) % 5):
+            if not (all(item == 0 for item in bboxes[idx])):
+                ref = rf_ids[idx]
+                rf_anns = self.coco.loadAnns(ref)[0]
+                gt_bbox = rf_anns["bbox"]
+                gt_bbox[2] = rf_anns["bbox"][0] + rf_anns["bbox"][2]
+                gt_bbox[3] = rf_anns["bbox"][1] + rf_anns["bbox"][3]
+                iou_value = calculate_iou(bboxes[idx], gt_bbox)
+                if iou_value > 0.7:
+                    self.position = idx
+                else:
+                    self.position = 0
+            else:
+                self.position = 0
+
+        else:
+            remain = (idx+1) % 5
+            self.position = idx-remain
+
+            if self.position < 0:
+                self.position=0
+            else:
+                ref = rf_ids[self.position]
+                rf_anns = self.coco.loadAnns(ref)[0]
+                gt_bbox = rf_anns["bbox"]
+                gt_bbox[2] = rf_anns["bbox"][0] + rf_anns["bbox"][2]
+                gt_bbox[3] = rf_anns["bbox"][1] + rf_anns["bbox"][3]
+                iou_value = calculate_iou(bboxes[self.position], gt_bbox)
+                if not iou_value > 0.7:
+                    self.position = 0
+
+        print("position = ", self.position)
+        rf_anns["bbox"][0] = bboxes[self.position][0]
+        rf_anns["bbox"][1] = bboxes[self.position][1]
+        rf_anns["bbox"][2] = bboxes[self.position][2] - bboxes[self.position][0]
+        rf_anns["bbox"][3] = bboxes[self.position][3] - bboxes[self.position][1]
+        
         rf_img_info['ann'] = rf_anns
         rf_img_info['file_name'] = self.coco.loadImgs(rf_anns['image_id'])[0]['file_name']
         rf_img_info['img_info'] = self.coco.loadImgs(rf_anns['image_id'])[0]

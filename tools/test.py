@@ -28,7 +28,7 @@ from metrics import accuracy_metric
 from torchvision.utils import save_image
 
 
-def multi_gpu_test(model, data_loader, tmpdir=None, ann_file=None):
+def multi_gpu_test(model, data_loader, tmpdir=None, seq=None):
     model.eval()
     results = []
     img_ids = []
@@ -39,46 +39,38 @@ def multi_gpu_test(model, data_loader, tmpdir=None, ann_file=None):
     if rank == 0:
         prog_bar = mmcv.ProgressBar(len(dataset))
 
-    max_score = []
-    print(len(data_loader))
-    num_list = []
+    max_scores = []
+    #num_list = []
+    bboxes = []
     for i, data in enumerate(data_loader):
-        #if not i:
-            #continue
-        #if not (i%200):
-        #save_image(data["img"][0][1], "/truba/home/ionur/BHRL/refs/sample/img_ref_{}.png".format(i))
-        #save_image(data["img"][0][0], "/truba/home/ionur/BHRL/refs/sample/img_{}.png".format(i))
+        save_image(data["img"][0][1], "refs/car16/car16_ref_{}.png".format(i))
         with torch.no_grad():
             result = model(return_loss=False, rescale=True, **data)
         last = result[0][0].shape[0] - 1
+
+        
+        results.extend(result)
+
         #result[0][0] = result[0][0][:-last]
         # if not last:
         #     max_score.append(result[0][0][0][-1])
         # else:
         #     max_score.append(result[0][0][:-last]) 
-        results.extend(result)
-        # max_score = result[0][0][0][-1]
+        
+        if len(result[0][0]):
+            bboxes.append(result[0][0][0])
+            max_score = result[0][0][0][-1]
+        else:
+            bboxes.append([0,0,0,0,0])
+            max_score = -100
 
-        #if max_score < 0.95:
+        max_scores.append(max_score)
+
+        #if max_score < 0.9:
             #num_list.append(i)
-
-        #img = cv2.imread(os.path.join("/truba/home/ionur/BHRL/data/VOCdevkit", data['img_metas'][0].data[0][0]['img_info']['filename']))
-        #img = os.path.join("/truba/home/ionur/BHRL/data/VOCdevkit", data['img_metas'][0].data[0][0]['img_info']['filename'])
-        #for pred in result[0][0]:
-            #print(pred)
-            #color = (random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))
-        #if not (i%100):
-            #show_result_pyplot(model, img, result[0])
-            #img = cv2.rectangle(img, (int(pred[0]), int(pred[1])), (int(pred[2]), int(pred[3])), (0,0,255), 2)
-        #cv2.imshow("img", img) 
-        #cv2.waitKey(0)
-        #cv2.destroyAllWindows()
-        #print("/truba/home/ionur/BHRL/person14_vis_res/{}". format(os.path.split(data['img_metas'][0].data[0][0]['img_info']['filename'])[-1]))
-        #cv2.imwrite("/truba/home/ionur/BHRL/group3_vis_res/{}". format(os.path.split(data['img_metas'][0].data[0][0]['img_info']['filename'])[-1]), img)
 
         img_id = data['img_metas'][0].data[0][0]['img_info']['id']
         label = data['img_metas'][0].data[0][0]['label']
-        #print(img_id, label)
         img_ids.append(img_id)
         img_labels.append(label)
         
@@ -89,8 +81,13 @@ def multi_gpu_test(model, data_loader, tmpdir=None, ann_file=None):
                 prog_bar.update()
     # collect results from all ranks
     results, img_ids, img_labels = collect_results_id(results, len(dataset), img_ids, img_labels, tmpdir)
-    #np.save("/truba/home/ionur/BHRL/results/VOT_results/person14_pretrained_voc_e20.npy", max_score)
-    #np.save("/truba/home/ionur/BHRL/vot_results/target_update_rule/update_frames_95.npy", num_list)
+
+    if not os.path.exists("/truba/home/ionur/BHRL/target_update_studies/{}". format(seq)):
+        os.makedirs("/truba/home/ionur/BHRL/target_update_studies/{}". format(seq))
+    # np.save("/truba/home/ionur/BHRL/target_update_studies/{}/preds.npy". format(seq), np.array(bboxes))
+    # np.save("/truba/home/ionur/BHRL/target_update_studies/{}/scores.npy".format(seq), max_scores)
+    #np.save("/truba/home/ionur/BHRL/target_update_studies/{}/indexes_smaller_than_90.npy".format(seq), num_list)
+
     return results, img_ids, img_labels
 
 def collect_results_id(result_part, size, img_ids_part, img_labels_part, tmpdir=None):
@@ -223,8 +220,6 @@ def main():
     for i in range(avg):
         cfg.data.test.position = i 
         dataset = build_dataset(cfg.data.test) 
-        print("Dataset length == ", len(dataset))
-        print("Dataset Classes ==== ", dataset.CLASSES)
         data_loader = build_dataloader(
             dataset,
             samples_per_gpu=1,
@@ -257,7 +252,7 @@ def main():
             broadcast_buffers=False)
         
         ann_file = cfg.data.test.ann_file
-        outputs, img_ids, img_labels = multi_gpu_test(model, data_loader, args.tmpdir, ann_file)
+        outputs, img_ids, img_labels = multi_gpu_test(model, data_loader, args.tmpdir, seq=args.seq_name)
 
         rank, _ = get_dist_info()
         if args.out and rank == 0:
